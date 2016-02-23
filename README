@@ -1,0 +1,4 @@
+Special daemon, that implements simple protocol to configure dedicated 
+blackfin based board. BF board connected via L2/ethernet media.
+BF board can act as a remote ethernet media carrier and e1/t1 carrier.
+
