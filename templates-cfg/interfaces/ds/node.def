@@ -1,0 +1,40 @@
+tag:
+priority: 320
+type: u32
+help: DS interface
+val_help: u32:0-3; E1 trunk
+syntax:expression: $VAR(@) >= 0 && $VAR(@) <= 3; "Invalid trunk value"
+end:
+	NEW_IFACES=`echo $VAR(@@) | tr -d \'`
+	OLD_IFACES=`echo $VAR(OLD|@@) | tr -d \'`
+	THIS=`echo $VAR(@) | tr -d \'`
+
+	CH="$NEW_IFACES $OLD_IFACES"
+
+	for NEW in $NEW_IFACES; do
+		for OLD in $OLD_IFACES; do
+			if [ $NEW -eq $OLD ]; then
+				CH=`echo $CH | tr -d $NEW`
+			fi
+		done
+	done
+
+	for OLD in $OLD_IFACES; do
+		for NEW in $NEW_IFACES; do
+			if [ $OLD -eq $NEW ]; then
+				CH=`echo $CH | tr -d $OLD`
+			fi
+		done
+	done
+
+	for VAL in $CH; do
+		if [ "$THIS" -gt "$VAL" ]; then
+			exit 0;
+		fi
+	done 
+
+	${vyatta_libdir}/vyatta/update-e1.pl
+
+	if [ $? -ne 0 ]; then
+		exit 1;
+	fi

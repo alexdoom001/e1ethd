@@ -1,0 +1,9 @@
+type: txt
+
+help: Bridge name
+
+commit:expression: exec "${vyatta_sbindir}/list_config -c bridges $VAR(@)"
+commit:expression: exec "${vyatta_sbindir}/list_config -c existing-interfaces $VAR(@)"
+
+enumeration: bridges
+

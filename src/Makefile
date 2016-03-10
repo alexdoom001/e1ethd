@@ -1,6 +1,6 @@
-DIRS = daemon test
+DIRS = daemon test e1ethd_conf
 
-.PHONY: all $(DIRS)
+.PHONY: all $(DIRS) 
 
 default: all
 

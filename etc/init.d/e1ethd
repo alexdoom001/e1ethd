@@ -1,0 +1,50 @@
+#!/bin/bash
+
+NAME=e1ethd
+DAEMON_PATH=/usr/sbin/$NAME
+CONFIG=/etc/e1ethd.conf
+
+start() {
+	echo -n $"Starting e1ethd daemon: "
+
+	start-stop-daemon -Sbvx $DAEMON_PATH
+	echo "OK."
+}
+
+stop() {
+	echo -n $"Stopping e1ethd: "
+	killall $NAME
+	echo "OK."
+}
+
+restart() {
+	stop
+	start
+}
+
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	restart)
+		restart
+		;;
+	status)
+		res=`ps aux | grep -q $NAME`
+		if pgrep -x $NAME > /dev/null; then 
+			echo "Running"
+		else
+			echo "Not running"
+		fi
+		exit 0
+		;; 
+	*)
+		echo $"Usage: $0 {start|stop|restart|stop}"
+		exit 1
+esac
+
+exit 0
+

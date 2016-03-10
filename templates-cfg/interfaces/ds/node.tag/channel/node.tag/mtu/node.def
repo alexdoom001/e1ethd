@@ -1,0 +1,4 @@
+type: u32
+help: MTU value
+val_help: <68-2044>; MTU
+syntax:expression: $VAR(@) >= 68 && $VAR(@) <= 2044; "MTU must be in the range of 68 till 2044"

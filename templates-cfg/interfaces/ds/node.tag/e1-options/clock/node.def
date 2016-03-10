@@ -1,0 +1,5 @@
+type: txt
+help: Clock sync
+val_help: internal; Internal
+val_help: external; External
+syntax:expression: $VAR(@) in "internal", "external"; "Wrong clock sync source"

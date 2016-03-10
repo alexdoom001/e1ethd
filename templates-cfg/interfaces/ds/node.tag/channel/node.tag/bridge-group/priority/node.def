@@ -1,0 +1,4 @@
+type: u32
+help: Port prio
+syntax:expression: $VAR(@) >= 0 &&$VAR(@) <= 255; "Port priority must be between 1-255"
+val_help:<1-255>; Port prio for bridge

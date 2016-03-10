@@ -1,0 +1,5 @@
+type: txt
+help: HDLC type
+val_help: cisco-hdlc-ethernet; Ethernet
+val_help: cisco-hdlc-ip; IP
+syntax:expression: $VAR(@) in "cisco-hdlc-ethernet", "cisco-hdlc-ip"; "Wrong HDLC type"

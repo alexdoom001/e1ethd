@@ -1,0 +1,5 @@
+type: txt
+help: Coding
+val_help: hdb3; HDB3
+val_help: ami; AMI
+syntax:expression: $VAR(@) in "hdb3", "ami"; "Wrong coding type"

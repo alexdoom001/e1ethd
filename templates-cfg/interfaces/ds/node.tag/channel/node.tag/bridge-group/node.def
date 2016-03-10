@@ -1,0 +1,49 @@
+priority: 330
+help: Add interface to bridge
+
+end:
+    base_iface=pds
+    oldbridge=$VAR(OLD|./bridge/@)
+    newbridge=$VAR(./bridge/@)
+
+    if [ ${COMMIT_ACTION} = 'SET' ]; then
+	ethif=$base_iface$VAR(../../@).$VAR(../@)
+	if [ -z "$newbridge" ]; then
+	    echo "Bridge name required."
+	    exit 1
+	else
+	    if ! /usr/sbin/brctl addif $newbridge $ethif; then
+	        echo "Error: unable to add $ethif to bridge $newbridge."
+	        exit 1
+	    fi
+
+	    if [ -n $VAR(./cost/@) ]; then
+		/usr/sbin/brctl setpathcost $newbridge $ethif $VAR(./cost/@);
+	    fi;
+	    if [ -n $VAR(./priority/@) ]; then 
+		/usr/sbin/brctl setportprio $newbridge $ethif $VAR(./priority/@);
+	    fi
+	fi
+    elif [ ${COMMIT_ACTION} = 'DELETE' ]; then
+	ethif=$base_iface$VAR(OLD|../../@).$VAR(OLD|../@)
+	echo "Delete $ethif from bridge $oldbridge."
+	/usr/sbin/brctl delif $oldbridge $ethif
+    else
+	ethif=$base_iface$VAR(../../@).$VAR(../@)
+	if [ -z "$newbridge" ]; then
+	    echo "Bridge name required."
+	    exit 1
+	else
+	    if [ "$oldbridge" != "$newbridge" ]; then
+		/usr/sbin/brctl delif $oldbridge $ethif
+		/usr/sbin/brctl addif $newbridge $ethif
+	    fi
+	    if [ -n $VAR(./cost/@) ]; then
+		/usr/sbin/brctl setpathcost $newbridge $ethif $VAR(./cost/@)
+	    fi
+	    if [ -n $VAR(./priority/@) ]; then 
+		/usr/sbin/brctl setportprio $newbridge $ethif $VAR(./priority/@)
+	    fi
+	fi
+    fi
+    exit 0

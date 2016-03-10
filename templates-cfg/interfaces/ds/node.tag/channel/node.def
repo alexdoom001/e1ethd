@@ -1,0 +1,9 @@
+tag:
+type: u32
+help: E1 channel settings
+delete:
+	iface=pds$VAR(../@).$VAR(@)
+
+	if ip link | grep $iface >/dev/null; then
+		ip link delete $iface
+	fi

@@ -1,0 +1,4 @@
+type: u32
+help: Bridge cost value for STP 
+syntax:expression: $VAR(@) >= 1 && $VAR(@) < 65536 ; "Bridge cost value must be between 1 and 65535"
+val_help:<1-65535>; Bridge cost for STP

@@ -1,0 +1,3 @@
+type: txt
+help: Timeslots
+val_help: range; Timeslots range (example: 1-10)

@@ -1,0 +1,6 @@
+type: txt
+help: Framing
+val_help: g704;
+val_help: g704-no-crc;
+val_help: unframed;
+syntax:expression: $VAR(@) in "g704", "g704-no-crc", "unframed"; "Wrong framing configuration"

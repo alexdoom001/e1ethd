@@ -6,8 +6,54 @@
 #include <string.h>
 
 #include "../daemon/protocol.h"
+#include "../daemon/debug.h"
 
-gboolean readFromSock(GIOChannel *source, GIOCondition cond, gpointer data) {
+void send_reply(struct_e1_proto *proto, struct_payload_hdr hdr)
+{
+	hdr.type = PKT_TYPE_REPLY;
+	struct Reply {
+		struct_payload_hdr hdr;
+		uint8_t err_code;
+	} reply;
+	reply.hdr = hdr;
+	reply.err_code = 1;
+
+	send_pkt(proto, &reply, sizeof(reply));
+}
+
+void callback(struct_e1_proto *proto, uint8_t event, uint8_t *payload, uint8_t size)
+{
+	struct_payload_hdr hdr;
+	if (get_pkt_header_from_payload(&hdr, payload, size) == FALSE) {
+		LOGE("Getting a packet header failed");
+		return;
+	} else {
+		LOGD("seq ----> %d", hdr.seq);
+		LOGD("type ----> %d", hdr.type);
+		LOGD("cmd_type ----> %d", hdr.cmd_type);
+	}
+
+	switch (event) {
+		case EVENT_RECV_PKT:
+		LOGD("EVENT_RECV_PKT");
+		break;
+		case EVENT_REQUEST:
+		LOGD("EVENT_REQUEST");
+		send_reply(proto, hdr);
+		break;
+		case EVENT_REPLY:
+		LOGD("EVENT_REPLY");
+		break;
+		case EVENT_SEND_FAIL:
+		LOGD("EVENT_SEND_FAIL");
+		break;
+		default:
+		LOGW("Unknown event received -> %d", event);
+	}
+}
+
+gboolean readFromSock(GIOChannel *source, GIOCondition cond, gpointer data)
+{
 	syslog(LOG_ERR, "readFromSock!");
 	GError *error = NULL;
 	GSocket *socket = (GSocket*)data;
@@ -21,7 +67,7 @@ gboolean readFromSock(GIOChannel *source, GIOCondition cond, gpointer data) {
 	gsockaddr_2 = g_socket_address_new_from_native(&sockaddr_2, sizeof(sockaddr_2));
 
 	/***********************************************/
-	StructPkt *pkt = read_pkt_from_socket(socket, gsockaddr_2);
+	struct_pkt *pkt = read_pkt_from_socket(socket, gsockaddr_2);
 	if (pkt == NULL) {
 		free_pkt(pkt);
 		return FALSE;
@@ -32,7 +78,7 @@ gboolean readFromSock(GIOChannel *source, GIOCondition cond, gpointer data) {
 	syslog(LOG_ERR, "pkt->pkt_size -> %d", pkt->pkt_size);
 
 
-	StructCmd_SetSync set_sync;
+	struct_set_sync set_sync;
 	memcpy(&set_sync, pkt->serialized_payload, pkt->pkt_size);
 
 	syslog(LOG_ERR, "tract -> %d", set_sync.tract);
@@ -42,52 +88,33 @@ gboolean readFromSock(GIOChannel *source, GIOCondition cond, gpointer data) {
 	return TRUE;
 }
 
-int main() {
-	openlog("e1ethd", LOG_CONS, LOG_DAEMON);
-	syslog(LOG_INFO, "Starting e1_test");
+int main()
+{
+	struct_e1_proto proto;
+	struct_e1_config cfg;
 
-	GMainLoop *loop;
-	loop = g_main_loop_new(NULL, FALSE);
+	openlog("test_e1", LOG_CONS, LOG_DAEMON);
+	syslog(LOG_INFO, "Starting test_e1");
 
-	/***********************************************************/
-	GError *error = NULL;
-	GSocket *socket = g_socket_new(
-			G_SOCKET_FAMILY_IPV4,
-			G_SOCKET_TYPE_DATAGRAM,
-			G_SOCKET_PROTOCOL_UDP,
-			&error
-			);
+	cfg.udp_port = 28960;
+	cfg.src_addr = "192.168.0.2";
+	cfg.dst_addr = "192.168.0.1";
 
-	if (socket == NULL) {
-		syslog(LOG_ERR, "test: Create socket failed -> %s", error->message);
-		return -1;
+	/* Initialization */
+	if (init_proto(&proto, &cfg) == FALSE) {
+		LOGE("Init failed!");
+		return -2;
 	}
 
-	GSocketAddress *gsockaddr;
-	struct sockaddr_in sockaddr;
-	sockaddr.sin_family = AF_INET;
-	sockaddr.sin_port = htons(28960);
-	inet_aton("192.168.0.2", &sockaddr.sin_addr.s_addr);
+	register_callback(&proto, callback);
 
-	gsockaddr = g_socket_address_new_from_native(&sockaddr, sizeof(sockaddr));
+	/* Send msg */
+	//test_send_pkt(&proto);
+	while (1) {
 
-	if (g_socket_bind(socket, gsockaddr, TRUE, &error) == FALSE) {
-		syslog(LOG_ERR, "test: Bind socket failed -> %s", error->message);
-		return -1;
 	}
 
-
-	int fd = g_socket_get_fd(socket);
-	GIOChannel *channel = g_io_channel_unix_new(fd);
-	guint source = g_io_add_watch(channel, G_IO_IN, (GIOFunc) readFromSock, socket);
-	g_io_channel_unref(channel);
-
-
-	/***********************************************************/
-
-	g_main_loop_run(loop);
-
-	g_main_loop_unref(loop);
+	deinit_proto(&proto);
 
 	return 0;
 }

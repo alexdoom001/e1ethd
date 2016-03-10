@@ -1,0 +1,6 @@
+type: txt
+help: IP address
+
+syntax:expression: exec "${vyatta_sbindir}/valid_address $VAR(@)"
+
+val_help:<x.x.x.x/x>; IP address and mask
